@@ -1,5 +1,5 @@
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
-import* as Sentry from"@sentry/node";
+import * as Sentry from"@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
 
 Sentry.init({
