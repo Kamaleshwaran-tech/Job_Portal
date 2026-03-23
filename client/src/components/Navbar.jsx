@@ -6,7 +6,7 @@ import Container from "@mui/material/Container";
 import { useClerk, UserButton, useUser } from "@clerk/clerk-react";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 const Navbar = () => {
@@ -42,7 +42,7 @@ const Navbar = () => {
               gap: 2
             }}
           >
-            <Link href="/applications" underline="none">
+            <Link component={RouterLink} to="/applications" underline="none">
               Applied Jobs
             </Link>
 
@@ -60,7 +60,7 @@ const Navbar = () => {
               flexWrap: "wrap"
             }}
           >
-            <Button onClick={e => setShowRecruiterLogin(true)} variant="text" sx={{ color: "GrayText" }}>
+            <Button onClick={() => setShowRecruiterLogin(true)} variant="text" sx={{ color: "GrayText" }}>
               Recruiter Login
             </Button>
 

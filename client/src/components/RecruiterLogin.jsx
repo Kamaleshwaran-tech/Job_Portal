@@ -11,10 +11,15 @@ import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import LockIcon from "@mui/icons-material/Lock";
 import Button from "@mui/material/Button";
 import Link from "@mui/material/Link";
-import Chip from "@mui/material/Chip";
+import {useNavigate} from 'react-router-dom'
 import { assets } from "../assets/assets";
+import axios from 'axios'
+import { toast } from "react-toastify";
 
 const RecruiterLogin = () => {
+
+  const navigate = useNavigate()
+
   const [state, setState] = useState("Login");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -24,14 +29,58 @@ const RecruiterLogin = () => {
 
   const [isTextDataSubmitted, setIsTextDataSubmitted] = useState(false);
 
-  const { showRecruiterLogin, setShowRecruiterLogin } = useContext(AppContext);
+  const { showRecruiterLogin, setShowRecruiterLogin, backendUrl, setCompanyToken, setCompanyData } = useContext(AppContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
 
     if (state == "Sign Up" && !isTextDataSubmitted) {
-      setIsTextDataSubmitted(true);
+      return setIsTextDataSubmitted(true);
     }
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+
+      if(state === "Login"){
+
+        const {data} = await axios.post(backendUrl + '/api/company/login',{email: normalizedEmail,password})
+
+        if(data.success){
+          
+          setCompanyData(data.company)
+          setCompanyToken(data.token)
+          localStorage.setItem('companyToken',data.token)
+          setShowRecruiterLogin(false)
+          navigate('/dashboard')
+        }else {
+          toast.error(data.message) 
+        }
+      }else{
+        const formData = new FormData()
+        formData.append('name',name)
+        formData.append('password',password)
+        formData.append('email',normalizedEmail)
+        formData.append('image',image)
+
+        const {data} = await axios.post(backendUrl+'/api/company/register',formData)
+
+        if (data.success) {
+          
+          setCompanyData(data.company)
+          setCompanyToken(data.token)
+          localStorage.setItem('companyToken',data.token)
+          setShowRecruiterLogin(false)
+          navigate('/dashboard')
+        } else{
+          toast.error(data.message)
+        }
+
+      }
+    } catch (error) {
+      toast.error(error.message)
+      console.log(error.response?.data || error.message);
+    }
+
   };
 
   return (
@@ -197,7 +246,7 @@ const RecruiterLogin = () => {
               </>
             )}
             {state === "Login" && (
-              <Link to="" sx={{ ml: 7, mt: 5 }}>
+              <Link href="" sx={{ ml: 7, mt: 5 }}>
                 Forget Password?
               </Link>
             )}

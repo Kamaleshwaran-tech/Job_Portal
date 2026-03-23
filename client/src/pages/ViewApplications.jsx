@@ -2,31 +2,75 @@ import { Box, Button, Chip, Container, Link, Table, TableBody, TableCell, TableH
   Menu,
   MenuItem,
   Typography } from '@mui/material'
-import React,{useState} from 'react'
-import { assets, viewApplicationsPageData } from '../assets/assets'
+import React,{useContext, useEffect, useState} from 'react'
+import { assets } from '../assets/assets'
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { AppContext } from '../context/AppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const ViewApplications = () => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [applications, setApplications] = useState([]);
   const open = Boolean(anchorEl);
+  const { backendUrl, companyToken } = useContext(AppContext);
 
-  const handleOpen = (event) => {
+  const fetchCompanyApplicants = async () => {
+    try {
+      const { data } = await axios.get(backendUrl + '/api/company/applicants', {
+        headers: { token: companyToken }
+      });
+
+      if (data.success) {
+        setApplications(data.applicants);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
+
+  const handleOpen = (event, application) => {
     setAnchorEl(event.currentTarget);
+    setSelectedApplication(application);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
+    setSelectedApplication(null);
   };
 
-  const handleAccept = () => {
-    console.log("Accepted");
-    handleClose();
+  const changeStatus = async (status) => {
+    if (!selectedApplication) return;
+
+    try {
+      const { data } = await axios.post(
+        backendUrl + '/api/company/change-status',
+        { id: selectedApplication._id, status },
+        { headers: { token: companyToken } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        fetchCompanyApplicants();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      handleClose();
+    }
   };
 
-  const handleReject = () => {
-    console.log("Rejected");
-    handleClose();
-  };
+  useEffect(() => {
+    if (companyToken) {
+      fetchCompanyApplicants();
+    }
+  }, [companyToken]);
+
   return (
     <div><Container>
       <Box>
@@ -42,24 +86,24 @@ const ViewApplications = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {viewApplicationsPageData.map((applicant,index) =>(
-               <TableRow>
+            {applications.map((applicant,index) =>(
+               <TableRow key={applicant._id}>
               <TableCell>{index + 1}</TableCell>
               <TableCell>
                 <Box sx={{display:'flex',alignItems:'center'}}>
-                  <img src={applicant.imgSrc} alt="" />
-                <Chip label={applicant.name} sx={{
+                  <img src={applicant.userId?.image} alt="" width={28} />
+                <Chip label={applicant.userId?.name} sx={{
                   background:'none'
                 }}/>
                 </Box>
                 
               </TableCell>
-              <TableCell>{applicant.jobTitle}</TableCell>
-              <TableCell>{applicant.location}</TableCell>
+              <TableCell>{applicant.jobId?.title}</TableCell>
+              <TableCell>{applicant.jobId?.location}</TableCell>
               <TableCell>
-                <Link to='' target='_blank'>
+                <Link href={applicant.userId?.resume || '#'} target='_blank' underline="none">
                 
-                  <Button variant='outlined' sx={{textDecoration:'none',
+                  <Button variant='outlined' disabled={!applicant.userId?.resume} sx={{textDecoration:'none',
                   display:'flex',
                   
                   gap:1}}>Resume <img src={assets.resume_download_icon} alt="" /> </Button>
@@ -70,7 +114,7 @@ const ViewApplications = () => {
               <TableCell>
                  <Box>
       {/* Three Dots Button */}
-      <IconButton onClick={handleOpen} size="small">
+      <IconButton onClick={(event) => handleOpen(event, applicant)} size="small">
         <MoreHorizIcon />
       </IconButton>
 
@@ -87,11 +131,11 @@ const ViewApplications = () => {
           }
         }}
       >
-        <MenuItem onClick={handleAccept}>
+        <MenuItem onClick={() => changeStatus('Accepted')}>
           <Typography sx={{ color: "green" }}>Accept</Typography>
         </MenuItem>
 
-        <MenuItem onClick={handleReject}>
+        <MenuItem onClick={() => changeStatus('Rejected')}>
           <Typography sx={{ color: "red" }}>Reject</Typography>
         </MenuItem>
       </Menu>

@@ -14,11 +14,15 @@ import {
   ListItemText,
 } from "@mui/material";
 import { assets } from "../assets/assets";
+import { useContext } from "react";
+import { AppContext } from "../context/AppContext";
+import { Navigate } from "react-router-dom";
 
 const Dashboard = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
+  const {companyData, setCompanyToken, setCompanyData, companyToken} = useContext(AppContext)
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -27,6 +31,17 @@ const Dashboard = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const logout = () => {
+    localStorage.removeItem("companyToken");
+    setCompanyToken(null);
+    setCompanyData(null);
+    navigate("/");
+  };
+
+  if (!companyToken) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <>
@@ -49,26 +64,27 @@ const Dashboard = () => {
           alt="logo"
           sx={{ height: { xs: 28, sm: 36 }, cursor: "pointer" }}
         />
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {companyData && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          
           <Typography
             variant="body2"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
-            Hi, Kamalesh
+            Welcome, {companyData.name}
           </Typography>
 
           <IconButton onClick={handleOpen} size="small">
-            <Avatar sx={{ width: 34, height: 34 }}>
-              {assets.company_icon}
-            </Avatar>
+            <Avatar src={companyData.image} sx={{ width: 34, height: 34 }} />
           </IconButton>
         </Box>
+        )}
+        
 
         <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
           <MenuItem onClick={handleClose}>My Profile</MenuItem>
           <Divider />
-          <MenuItem onClick={handleClose}>Logout</MenuItem>
+          <MenuItem onClick={logout}>Logout</MenuItem>
         </Menu>
       </Box>
 

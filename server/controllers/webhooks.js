@@ -1,8 +1,13 @@
 import { Webhook } from 'svix'
 import User from '../models/User.js'
+import { upsertUserFromClerkWebhook } from '../utils/syncClerkUser.js'
 
 export const clerkWebhooks = async (req, res) => {
   try {
+    if (!process.env.CLERK_WEBHOOK_SECRET) {
+      throw new Error('Missing CLERK_WEBHOOK_SECRET')
+    }
+
     const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
 
     const payload = req.body.toString('utf8')
@@ -17,26 +22,12 @@ export const clerkWebhooks = async (req, res) => {
 
     switch (type) {
       case 'user.created': {
-        await User.findByIdAndUpdate(
-          data.id,
-          {
-            _id: data.id,
-            email: data.email_addresses?.[0]?.email_address ?? '',
-            name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
-            image: data.image_url ?? '',
-            resume: '',
-          },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
-        )
+        await upsertUserFromClerkWebhook(data)
         return res.status(200).json({ ok: true })
       }
 
       case 'user.updated': {
-        await User.findByIdAndUpdate(data.id, {
-          email: data.email_addresses?.[0]?.email_address ?? '',
-          name: `${data.first_name ?? ''} ${data.last_name ?? ''}`.trim(),
-          image: data.image_url ?? '',
-        })
+        await upsertUserFromClerkWebhook(data)
         return res.status(200).json({ ok: true })
       }
 
@@ -49,7 +40,10 @@ export const clerkWebhooks = async (req, res) => {
         return res.status(200).json({ ok: true })
     }
   } catch (error) {
-    console.error('Webhook error:', error.message)
-    return res.status(400).json({ success: false, message: 'Webhook Error' })
+    console.error('Webhook error:', {
+      message: error.message,
+      stack: error.stack
+    })
+    return res.status(400).json({ success: false, message: error.message })
   }
 }

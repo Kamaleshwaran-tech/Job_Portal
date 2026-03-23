@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import kconvert from "k-convert";
@@ -15,18 +15,58 @@ import DOMPurify from "dompurify";
 import JobCard from "../components/JobCard";
 import Grid from "@mui/material/Grid";
 import Footer from "../components/Footer";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useAuth, useClerk, useUser } from "@clerk/clerk-react";
 
 const ApplyJob = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [JobData, setJobData] = useState(null);
-  const { jobs } = useContext(AppContext);
+  const [isApplying, setIsApplying] = useState(false);
+  const { jobs, backendUrl } = useContext(AppContext);
+  const { getToken } = useAuth();
+  const { openSignIn } = useClerk();
+  const { user } = useUser();
 
   const fetchJob = async () => {
     const data = jobs.filter((job) => job._id === id);
     if (data.length !== 0) {
       setJobData(data[0]);
-      console.log(data[0]);
+    }
+  };
+
+  const applyHandler = async () => {
+    if (!user) {
+      openSignIn();
+      return;
+    }
+
+    try {
+      setIsApplying(true);
+      const token = await getToken();
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/users/apply`,
+        { jobId: id },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+      } else {
+        if (data.message?.toLowerCase().includes("resume")) {
+          toast.info("Upload your resume first to apply.");
+          navigate("/applications");
+          return;
+        }
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setIsApplying(false);
     }
   };
   useEffect(() => {
@@ -118,6 +158,8 @@ const ApplyJob = () => {
             }}
           >
             <Button
+              onClick={applyHandler}
+              disabled={isApplying}
               variant="contained"
               sx={{
                 px: 4,
@@ -126,7 +168,7 @@ const ApplyJob = () => {
                 fontWeight: 600,
               }}
             >
-              Apply now
+              {isApplying ? "Applying..." : "Apply now"}
             </Button>
 
             <Typography
@@ -152,6 +194,8 @@ const ApplyJob = () => {
                 }}
               />
               <Button
+                onClick={applyHandler}
+                disabled={isApplying}
                 variant="contained"
                 sx={{
                   px: 4,
@@ -161,7 +205,7 @@ const ApplyJob = () => {
                   mt: 2,
                 }}
               >
-                Apply now
+                {isApplying ? "Applying..." : "Apply now"}
               </Button>
             </Box>
           </Grid>
@@ -177,7 +221,6 @@ const ApplyJob = () => {
                     job._id !== JobData._id &&
                     job.companyId._id === JobData.companyId._id,
                 )
-                .filter((job) => true)
                 .slice(0, 2)
                 .map((job, index) => (
                   <JobCard key={index} job={job} />
@@ -188,10 +231,10 @@ const ApplyJob = () => {
           </Grid>
         </Grid>
       </Container>
-      <Footer/>
+      <Footer  />
     </div>
   ) : (
-    <Loading />
+    <Loading  />
   );
 };
 
