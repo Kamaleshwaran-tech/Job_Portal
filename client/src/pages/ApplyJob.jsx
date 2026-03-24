@@ -75,6 +75,16 @@ const ApplyJob = () => {
     }
   }, [id, jobs]);
 
+  const relatedJobs = JobData
+    ? jobs
+        .filter(
+          (job) =>
+            job._id !== JobData._id &&
+            job.companyId._id === JobData.companyId._id,
+        )
+        .slice(0, 2)
+    : [];
+
   return JobData ? (
     <div>
       <Navbar />
@@ -211,22 +221,22 @@ const ApplyJob = () => {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ mt: 5 }}>
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                More jobs from {JobData.companyId.name}
-              </Typography>
-              <Box sx={{display:'flex',flexDirection:'column',gap:2}}>
-                {jobs
-                .filter(
-                  (job) =>
-                    job._id !== JobData._id &&
-                    job.companyId._id === JobData.companyId._id,
-                )
-                .slice(0, 2)
-                .map((job, index) => (
-                  <JobCard key={index} job={job} />
-                ))}
-              </Box>
-              
+              {relatedJobs.length > 0 ? (
+                <>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    More jobs from {JobData.companyId.name}
+                  </Typography>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {relatedJobs.map((job) => (
+                      <JobCard key={job._id} job={job} />
+                    ))}
+                  </Box>
+                </>
+              ) : (
+                <Typography variant="body1" color="text.secondary">
+                  No more jobs are available to show here.
+                </Typography>
+              )}
             </Box>
           </Grid>
         </Grid>
