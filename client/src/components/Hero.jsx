@@ -8,6 +8,15 @@ import Container from "@mui/material/Container";
 import { purple } from "@mui/material/colors";
 import { AppContext } from "../context/AppContext";
 
+const trustedCompanies = [
+  { name: "Microsoft", logo: assets.microsoft_logo },
+  { name: "Walmart", logo: assets.walmart_logo },
+  { name: "Accenture", logo: assets.accenture_logo },
+  { name: "Samsung", logo: assets.samsung_logo },
+  { name: "Amazon", logo: assets.amazon_logo },
+  { name: "Adobe", logo: assets.adobe_logo },
+];
+
 const Hero = () => {
   const { setSearchFilter, setIsSearched } = useContext(AppContext);
 
@@ -109,23 +118,56 @@ const Hero = () => {
         <Box
           sx={{
             display: "flex",
-            alignItems: "start",
-            justifyContent: "start",
-            gap: 5,
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: "center",
+            justifyContent: "center",
+            gap: { xs: 2.5, md: 4 },
             background: "#fff",
-            borderRadius: 2,
-            py: 2,
-            px: 4,
+            borderRadius: 3,
+            py: { xs: 2.5, sm: 3 },
+            px: { xs: 2, sm: 3, md: 4 },
             boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
           }}
         >
-          <Typography sx={{ color: "gray", pr: "40px" }}>Trusted by</Typography>
-          <img src={assets.microsoft_logo} alt="" height={28} />
-          <img src={assets.walmart_logo} alt="" height={28} />
-          <img src={assets.accenture_logo} alt="" height={28} />
-          <img src={assets.samsung_logo} alt="" height={28} />
-          <img src={assets.amazon_logo} alt="" height={28} />
-          <img src={assets.adobe_logo} alt="" height={28} />
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontWeight: 500,
+              textAlign: { xs: "center", md: "left" },
+              whiteSpace: "nowrap",
+              minWidth: { md: "100px" },
+            }}
+          >
+            Trusted by
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: { xs: "center", md: "flex-start" },
+              columnGap: { xs: 2.5, sm: 4 },
+              rowGap: 2.5,
+              width: "100%",
+            }}
+          >
+            {trustedCompanies.map((company) => (
+              <Box
+                key={company.name}
+                component="img"
+                src={company.logo}
+                alt={`${company.name} logo`}
+                sx={{
+                  height: { xs: 20, sm: 24, md: 28 },
+                  width: "auto",
+                  maxWidth: { xs: "95px", sm: "115px", md: "130px" },
+                  objectFit: "contain",
+                  flexShrink: 0,
+                }}
+              />
+            ))}
+          </Box>
         </Box>
       </Box>
     </Container>
