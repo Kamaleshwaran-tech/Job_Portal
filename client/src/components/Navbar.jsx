@@ -25,21 +25,35 @@ const Navbar = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          flexWrap: "wrap",
-          py: 2,
-          gap: { xs: 1, sm: 0 }
+          flexWrap: "nowrap",
+          py: { xs: 1.5, sm: 2 },
+          gap: 2,
         }}
       >
         {/* Logo */}
-        <Box onClick={()=> navigate('/')}  component="img"  src={assets.logo} alt="" sx={{ height: 40, cursor:'pointer' }} />
+        <Box
+          onClick={() => navigate("/")}
+          component="img"
+          src={assets.logo}
+          alt=""
+          sx={{
+            height: { xs: 28, sm: 40 },
+            width: "auto",
+            maxWidth: { xs: "110px", sm: "none" },
+            cursor: "pointer",
+            flexShrink: 1,
+          }}
+        />
 
         {user ? (
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              flexWrap: "wrap",
-              gap: 2
+              flexWrap: "nowrap",
+              justifyContent: "flex-end",
+              gap: { xs: 1, sm: 2 },
+              flexShrink: 0,
             }}
           >
             <Link component={RouterLink} to="/applications" underline="none">
@@ -56,18 +70,41 @@ const Navbar = () => {
           <Box
             sx={{
               display: "flex",
-              gap: 1,
-              flexWrap: "wrap"
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: { xs: 0.5, sm: 1 },
+              flexShrink: 0,
             }}
           >
-            <Button onClick={() => setShowRecruiterLogin(true)} variant="text" sx={{ color: "GrayText" }}>
-              Recruiter Login
+            <Button
+              onClick={() => setShowRecruiterLogin(true)}
+              variant="text"
+              sx={{
+                color: "GrayText",
+                minWidth: "auto",
+                px: { xs: 1, sm: 1.5 },
+                fontSize: { xs: "0.72rem", sm: "0.875rem" },
+                whiteSpace: "nowrap",
+              }}
+            >
+              <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+                Recruiter
+              </Box>
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                Recruiter Login
+              </Box>
             </Button>
 
             <Button
               onClick={() => openSignIn()}
               variant="contained"
-              sx={{ borderRadius: 10 }}
+              sx={{
+                borderRadius: 10,
+                minWidth: "auto",
+                px: { xs: 1.5, sm: 2.5 },
+                fontSize: { xs: "0.72rem", sm: "0.875rem" },
+                whiteSpace: "nowrap",
+              }}
             >
               Login
             </Button>
